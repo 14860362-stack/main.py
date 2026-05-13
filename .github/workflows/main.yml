@@ -1,0 +1,43 @@
+name: 5-Minute Stock Monitor
+
+# 2. 設定觸發條件
+on:
+  schedule:
+    # 設定定時執行，格式為 Cron 語法
+    # '*/5 * * * *' 代表每隔 5 分鐘執行一次
+    - cron: '*/5 * * * *'
+ 
+  # 允許手動觸發執行，方便你測試按鈕是否正常
+  workflow_dispatch:
+
+# 3. 具體要執行的工作內容
+jobs:
+  run-bot:
+    # 使用 GitHub 提供的最新版 Ubuntu 虛擬伺服器
+    runs-on: ubuntu-latest
+
+    steps:
+      # 步驟一：將你的程式碼從 GitHub 儲存庫下載到虛擬伺服器中
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 步驟二：安裝 Python 環境
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      # 步驟三：安裝你在 requirements.txt 裡面寫的套件 (requests, beautifulsoup4)
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      # 步驟四：執行你的 Python 程式碼
+      - name: Run Python script
+        env:
+          # 將你在 GitHub Settings 存好的 Secrets 讀取進來
+          # 這樣 Python 程式碼才能透過 os.environ.get 抓到 Token
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python main.py
